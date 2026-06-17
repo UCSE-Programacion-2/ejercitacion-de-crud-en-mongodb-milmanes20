@@ -1,0 +1,84 @@
+name: Setup Assignment Issues
+
+on:
+  repository_dispatch:
+    types: [classroom_assignment_accepted]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: setup-issues-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  create_issues:
+    name: Create Issues
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Issue 1 - Conexión
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/01-conexion.md
+          update_existing: true
+          search_existing: all
+
+      - name: Issue 2 - GET /equipos
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/02-get-equipos.md
+          update_existing: true
+          search_existing: all
+
+      - name: Issue 3 - GET /equipos/buscar
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/03-get-equipos-buscar.md
+          update_existing: true
+          search_existing: all
+
+      - name: Issue 4 - GET /equipos/:id
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/04-get-equipos-id.md
+          update_existing: true
+          search_existing: all
+
+      - name: Issue 5 - POST /equipos
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/05-post-equipos.md
+          update_existing: true
+          search_existing: all
+
+      - name: Issue 6 - PUT /equipos/:id
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/06-put-equipos-id.md
+          update_existing: true
+          search_existing: all
+
+      - name: Issue 7 - DELETE /equipos/:id
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/07-delete-equipos-id.md
+          update_existing: true
+          search_existing: all

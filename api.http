@@ -1,0 +1,45 @@
+### Variables
+@url = http://localhost:3000/equipos
+
+### 1. Obtener todos los equipos
+GET {{url}}
+
+### 2. Buscar equipos por técnico (ejemplo: "lionel")
+GET {{url}}/buscar?tecnico=lionel
+
+### 3. Obtener un equipo por ID existente (reemplaza el ID por uno real de tu base de datos)
+GET {{url}}/5f9b3b3b3b3b3b3b3b3b3b31
+
+### 4. Crear un nuevo equipo (Exitoso)
+POST {{url}}
+Content-Type: application/json
+
+{
+    "equipo": "España",
+    "tecnico": "Luis de la Fuente",
+    "continente": "Europa",
+    "campeonatos_mundiales": 1
+}
+
+### 5. Crear un nuevo equipo (Falla por campos faltantes/inválidos)
+POST {{url}}
+Content-Type: application/json
+
+{
+    "equipo": "España",
+    "tecnico": "Luis de la Fuente"
+}
+
+### 6. Actualizar un equipo existente (reemplaza el ID)
+PUT {{url}}/5f9b3b3b3b3b3b3b3b3b3b31
+Content-Type: application/json
+
+{
+    "equipo": "Argentina",
+    "tecnico": "Lionel Scaloni Renovado",
+    "continente": "Sudamérica",
+    "campeonatos_mundiales": 4
+}
+
+### 7. Eliminar un equipo existente (reemplaza el ID)
+DELETE {{url}}/5f9b3b3b3b3b3b3b3b3b3b32

@@ -136,7 +136,7 @@ app.get('/equipos/:id', async (req, res) => {
                 typeof equipo !== 'string' || !equipo.trim() ||
                 typeof tecnico !== 'string' || !tecnico.trim() || //typeof para validar que ademas que no sea una cadena vacía tambien que no sea otro tipo de dato
                 typeof continente !== 'string' || !continente.trim() ||
-                typeof campeonatos_mundiales !== 'number' || campeonatos_mundiales < 0
+                typeof campeonatos_mundiales !== 'number'
             ) {
                 
                 return res.status(400).json({ error: "Datos del equipo inválidos o incompletos" });

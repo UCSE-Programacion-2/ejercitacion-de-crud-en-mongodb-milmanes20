@@ -15,6 +15,12 @@ const PORT = process.env.PORT || 3000;
  * 4. Llama a next().
  */
 // Tu código aquí
+app.use((req, res, next) => {
+    req.db = client.db('MundialDB');
+    req.collection = req.db.collection('equipos');
+    next();
+});
+
 
 /**
  * TODO: Implementar un endpoint GET /equipos
@@ -24,6 +30,16 @@ const PORT = process.env.PORT || 3000;
  */
 app.get('/equipos', async (req, res) => {
     // Tu código aquí
+    try {
+        // Buscamos todos los documentos de la colección
+        const equipos = await req.collection.find().toArray();
+        
+        // Retornamos el arreglo con status 200
+        res.status(200).json(equipos);
+    } catch (error) {
+        console.error("Error al obtener los equipos:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
 });
 
 /**
@@ -36,6 +52,28 @@ app.get('/equipos', async (req, res) => {
  */
 app.get('/equipos/buscar', async (req, res) => {
     // Tu código aquí
+    try {
+        // 1. Obtenemos el parámetro de consulta 'tecnico'
+        const tecnicoBuscado = req.query.tecnico;
+
+        // Validamos si el usuario envió el parámetro en la URL
+        if (!tecnicoBuscado) {
+            return res.status(400).json({ error: "Falta el parámetro de búsqueda 'tecnico'" });
+        }
+
+        const equiposFiltrados = await req.collection.find({
+            tecnico: { 
+                $regex: tecnicoBuscado, 
+                $options: 'i' // 'i' hace que ignore mayúsculas/minúsculas
+            }
+        }).toArray();
+
+        // 3. Retornamos el arreglo filtrado con status 200
+        res.status(200).json(equiposFiltrados);
+    } catch (error) {
+        console.error("Error al buscar equipos:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
 });
 
 /**
@@ -49,6 +87,32 @@ app.get('/equipos/buscar', async (req, res) => {
  */
 app.get('/equipos/:id', async (req, res) => {
     // Tu código aquí
+    try {
+        // 1. Obtener el id de los parámetros de la URL
+        const idParam = req.params.id;
+
+        // 2. Validar si el id es un ObjectId válido
+        if (!ObjectId.isValid(idParam)) {
+            return res.status(400).json({ error: "ID inválido" });
+        }
+
+        // 3. Convertir el parámetro de texto a una instancia de ObjectId y buscar el documento
+        const equipo = await req.collection.findOne({ _id: new ObjectId(idParam) });
+
+        // 4. Si el equipo existe, lo retornamos con status 200
+        if (equipo) {
+            return res.status(200).json(equipo);
+        }
+
+        // 5. Si no se encuentra, retornamos status 404
+        res.status(404).json({ error: "Equipo no encontrado" });
+
+    } catch (error) {
+        console.error("Error al obtener el equipo por ID:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+
+
 });
 
 /**
@@ -59,9 +123,60 @@ app.get('/equipos/:id', async (req, res) => {
  * 3. Debe utilizar insertOne para crear el documento en la base de datos.
  * 4. Debe retornar el nuevo equipo con su _id generado y status 201.
  */
-app.post('/equipos', async (req, res) => {
-    // Tu código aquí
-});
+
+    
+    app.post('/equipos', async (req, res) => {
+        // Tu código aquí
+        try {
+            
+            const { equipo, tecnico, continente, campeonatos_mundiales } = req.body;
+    
+            //Validar que todos los campos existan y sean del tipo correcto
+            if (
+                typeof equipo !== 'string' || !equipo.trim() ||
+                typeof tecnico !== 'string' || !tecnico.trim() || //typeof para validar que ademas que no sea una cadena vacía tambien que no sea otro tipo de dato
+                typeof continente !== 'string' || !continente.trim() ||
+                typeof campeonatos_mundiales !== 'number'
+            ) 
+            {
+                
+                return res.status(400).json({ error: "Datos del equipo inválidos o incompletos" });
+            }
+    
+            // Estructurar el nuevo objeto para guardarlo en la base de datos
+            const nuevoEquipo = {
+                equipo: equipo.trim(),
+                tecnico: tecnico.trim(),
+                continente: continente.trim(),
+                campeonatos_mundiales: campeonatos_mundiales,
+                rendimiento: {
+                    partidos_jugados: 0,
+                    ganados: 0,
+                    empatados: 0,
+                    perdidos: 0,
+                    goles_a_favor: 0,
+                    goles_en_contra: 0
+                },
+                jugadores: [],
+                partidos: []
+            };
+    
+            
+            const resultado = await req.collection.insertOne(nuevoEquipo); // Insertamos el nuevo equipo en la colección
+    
+            //Retornar el nuevo equipo con su _id generado y status 201            
+            nuevoEquipo._id = resultado.insertedId; // Agregamos el _id generado al objeto nuevoEquipo
+    
+            res.status(201).json(nuevoEquipo);
+    
+        } catch (error) {
+            console.error("Error al crear el equipo:", error);
+            res.status(500).json({ error: "Error interno del servidor" });
+        }
+    });     
+        
+
+
 
 /**
  * TODO: Implementar un endpoint PUT /equipos/:id
@@ -71,8 +186,58 @@ app.post('/equipos', async (req, res) => {
  * 4. Si matchedCount === 0 (no se encontró el documento), retorna 404.
  * 5. Si fue exitoso, retorna status 200.
  */
+
+
+
 app.put('/equipos/:id', async (req, res) => {
     // Tu código aquí
+    try {
+        
+        const idParam = req.params.id;
+
+        
+        if (!ObjectId.isValid(idParam)) { // Validar que el ID sea un ObjectId válido
+            return res.status(400).json({ error: "ID inválido" });
+        }
+
+       // Extraer y validar todos los campos del req.body
+        const { equipo, tecnico, continente, campeonatos_mundiales } = req.body;
+
+        
+        if (
+            typeof equipo !== 'string' || !equipo.trim() ||
+            typeof tecnico !== 'string' || !tecnico.trim() ||
+            typeof continente !== 'string' || !continente.trim() ||
+            typeof campeonatos_mundiales !== 'number' || campeonatos_mundiales < 0
+        ) {
+            return res.status(400).json({ error: "Datos del equipo inválidos o incompletos" });
+        }
+
+        //Utilizamos updateOne con el operador $set para actualizar el documento
+        const resultado = await req.collection.updateOne(
+            { _id: new ObjectId(idParam) },
+            {
+                $set: {
+                    equipo: equipo.trim(),
+                    tecnico: tecnico.trim(),
+                    continente: continente.trim(),
+                    campeonatos_mundiales: campeonatos_mundiales
+                }
+            }
+        );
+
+        
+        if (resultado.matchedCount === 0) { //si matchedCount es 0, significa que no se encontró el documento con ese ID
+            return res.status(404).json({ error: "Equipo no encontrado" });
+        }
+
+        
+        res.status(200).json({ mensaje: "Equipo actualizado con éxito" });
+
+    } catch (error) {
+        console.error("Error al actualizar el equipo:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
 });
 
 /**
@@ -83,8 +248,34 @@ app.put('/equipos/:id', async (req, res) => {
  * 4. Si se eliminó correctamente, retorna status 200.
  */
 app.delete('/equipos/:id', async (req, res) => {
-    // Tu código aquí
+    //tu código aquí
+    try {
+        // 1. Obtener el id de los parámetros de la URL
+        const idParam = req.params.id;
+
+        // 2. Validar que el id sea un ObjectId válido
+        if (!ObjectId.isValid(idParam)) {
+            return res.status(400).json({ error: "ID inválido" });
+        }
+
+        // 3. Utilizar deleteOne para eliminar el documento por su _id
+        const resultado = await req.collection.deleteOne({ _id: new ObjectId(idParam) }); // convertimos el id a ObjectId y eliminamos el documento
+
+        // 4. Si el conteo de eliminados es mayor a 0, significa que existía y se borró con éxito
+        if (resultado.deletedCount > 0) {
+            return res.status(200).json({ mensaje: "Equipo eliminado con éxito" });
+        }
+
+        // 5. Si no afectó a ningún documento, significa que el ID no existía en la colección
+        res.status(404).json({ error: "Equipo no encontrado" });
+
+    } catch (error) {
+        console.error("Error al eliminar el equipo:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
 });
+
+
 
 // Iniciar el servidor solo si este archivo se ejecuta directamente
 if (require.main === module) {

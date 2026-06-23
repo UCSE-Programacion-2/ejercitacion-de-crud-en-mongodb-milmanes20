@@ -31,7 +31,7 @@ Content-Type: application/json
 }
 
 ### 6. Actualizar un equipo existente (reemplaza el ID)
-PUT {{url}}/5f9b3b3b3b3b3b3b3b3b3b31
+PUT {{url}}/6a28ab3f3d3ab0891adaa7e2
 Content-Type: application/json
 
 {
@@ -42,4 +42,4 @@ Content-Type: application/json
 }
 
 ### 7. Eliminar un equipo existente (reemplaza el ID)
-DELETE {{url}}/5f9b3b3b3b3b3b3b3b3b3b32
+DELETE {{url}}/6a28ab3f3d3ab0891adaa7e7
